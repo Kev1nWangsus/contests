@@ -167,3 +167,75 @@ class Solution:
 
 
 
+[3395. Subsequences with a Unique Middle Mode I](https://leetcode.com/problems/subsequences-with-a-unique-middle-mode-i/)
+
+Given an integer array `nums`, find the number of subsequences of size 5 of `nums` with a **unique middle mode**.
+
+
+
+Since the answer may be very large, return it **modulo** `10 ** 9 + 7`.
+
+A **mode** of a sequence of numbers is defined as the element that appears the **maximum** number of times in the sequence.
+
+A sequence of numbers contains a **unique mode** if it has only one mode.
+
+A sequence of numbers `seq` of size 5 contains a **unique middle mode** if the *middle element* (`seq[2]`) is a **unique mode**.
+
+
+
+### High-level
+
+正难则反 + 前后缀分解 + 分类讨论
+
+统计所有子序列数量comb(n, 5)，减去不符合要求的子序列数量
+
+不符合要求：
+
+1. 子序列只有1个x
+2. 子序列有两个x，但是有>=2个y
+   1. 左边2个y，右边1个x 1个z
+   2. 右边2个y，左边1个x 1个z
+   3. 左右各一个y，左边1个x，右边1个z (y != z)
+   4. 左右各一个y，右边1个x，左边1个z (y != z)
+
+
+
+### Prefix + Suffix + Combinations
+
++ TC O(n)
++ SC O(n)
+
+```python
+class Solution:
+    def subsequencesWithMiddleMode(self, nums: List[int]) -> int:
+        MOD = 10 ** 9 + 7
+
+        n = len(nums)
+        suf = Counter(nums)
+        pre = defaultdict(int)
+        ans = comb(n, 5) # all possible combinations
+
+        for left, x in enumerate(nums[:-2]): # left: number count to the left of x
+            suf[x] -= 1
+            if left > 1:
+                right = n - 1 - left # right: number to the right of x
+                pre_x, suf_x = pre[x], suf[x]
+                # invalid case 1: only 1 x
+                ans -= comb(left - pre_x, 2) * comb(right - suf_x, 2)
+                # invalid case 2: only 2 x's and at least 2 y's (y != x)
+                for y, suf_y in suf.items():
+                    if y == x:
+                        continue
+                    pre_y = pre[y]
+                    # left has 2 y's, right has 1 x and 1 z (yyxxz) (z == y is ok)
+                    ans -= comb(pre_y, 2) * suf_x * (right - suf_x)
+                    # right has 2 y's, left has 1 x and 1 z (xzxyy) (z == y is ok)
+                    ans -= comb(suf_y, 2) * pre_x * (left - pre_x)
+                    # left has 1 y and right has 1 y, left has 1 x (xyxyz) (y != z)
+                    ans -= pre_y * suf_y * pre_x * (right - suf_x - suf_y)
+                    # left has 1 y and right has 1 y, right has 1 x (yzxxy) (y != z)
+                    ans -= pre_y * suf_y * suf_x * (left - pre_x - pre_y)
+            pre[x] += 1
+        return ans % MOD
+```
+
