@@ -85,11 +85,7 @@ You are allowed to perform the following operation on `s` **at most** `numOps` t
 
 - Select any index `i` (where `0 <= i < n`) and **flip** `s[i]`. If `s[i] == '1'`, change `s[i]` to `'0'` and vice versa.
 
-You need to **minimize** the length of the **longest** 
-
-substring
-
- of `s` such that all the characters in the substring are **identical**.
+You need to **minimize** the length of the **longest** substring of `s` such that all the characters in the substring are **identical**.
 
 
 
