@@ -140,3 +140,76 @@ class Solution:
         return r
 ```
 
+
+
+### Heap
+
+每次操作最长的子串，如果还有numOps，就操作第二长的
+
++ TC O(n + numOps * logn)
++ SC O(n)
+
+```python
+class Solution:
+    def minLength(self, s: str, numOps: int) -> int:
+        n = len(s)
+        
+        # 特判check min length=1 
+        s = [int(ch) for ch in s]
+        op1 = sum([(i % 2) ^ s[i] for i in range(n)])      # 010101
+        op2 = sum([(i + 1) % 2 ^ s[i] for i in range(n)])  # 101010
+        if op1 <= numOps or op2 <= numOps:
+            return 1
+        
+        g = (list(t) for _, t in groupby(s))
+        h = [(-k, k, 1) for k in map(len, g)]
+        heapify(h)
+        for _ in range(numOps):
+            max_seg, k, seg = h[0]
+            if max_seg == -2:
+                return 2 # 已经特判过length=1，如果最长子串是2，那答案一定为2
+            heapreplace(h, (-(k // (seg + 1)), k, seg + 1))
+        return -h[0][0]
+```
+
+
+
+### Heap分桶优化
+
+同样使用heap, 但是s长度有限，可以按照子段长度分桶
+
++ TC O(n)
++ SC O(n)
+
+```python
+class Solution:
+    def minLength(self, s: str, numOps: int) -> int:
+        n = len(s)
+        s = [int(ch) for ch in s]
+        op1 = sum([(i % 2) ^ s[i] for i in range(n)])      # 010101
+        op2 = sum([(i + 1) % 2 ^ s[i] for i in range(n)])  # 101010
+        if op1 <= numOps or op2 <= numOps:
+            return 1
+        
+        buckets = [[] for _ in range(n+1)]
+        for _, t in groupby(s):
+            k = len(list(t))
+            buckets[k].append((k, 1))
+            
+        # 从最长子串开始枚举
+        i = n
+        for _ in range(numOps):
+            while not buckets[i]:
+                i -= 1
+            
+            if i == 2:
+                return 2 # 已经特判过length=1，如果最长子串是2，那答案一定为2
+            
+            k, seg = buckets[i].pop()
+            buckets[k // (seg + 1)].append((k, seg + 1))
+
+        while not buckets[i]:
+            i -= 1
+        return i
+```
+
